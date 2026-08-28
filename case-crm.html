@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Как я упростил CRM для менеджеров (B2B) — Ваге Цатурян</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Дизайн-токены (взяты из Figma) ===== */
+:root {
+  --color-black: #232323;
+  --color-gray-700: #404446;
+  --color-gray-200: #E1E1E1;
+  --color-gray-100: #F2F4F5;
+  --color-white: #FFFFFF;
+
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --radius-l: 24px;
+  --radius-m: 16px;
+  --radius-pill: 40px;
+
+  --content-width: 1000px;
+  --text-width: 800px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-main);
+  color: var(--color-gray-700);
+  background: var(--color-white);
+  -webkit-font-smoothing: antialiased;
+}
+
+img { display: block; max-width: 100%; }
+
+a { text-decoration: none; color: inherit; }
+
+ul { margin: 0; padding: 0; }
+li { margin-bottom: 8px; }
+li:last-child { margin-bottom: 0; }
+
+p { margin: 0; }
+
+/* ===== Типографика ===== */
+.h1 { font-size: 40px; line-height: 48px; font-weight: 600; color: var(--color-black); margin: 0; }
+.h2 { font-size: 32px; line-height: 40px; font-weight: 600; color: var(--color-black); margin: 0; }
+.h3 { font-size: 24px; line-height: 32px; font-weight: 600; color: var(--color-black); margin: 0; }
+.text-l { font-size: 18px; line-height: 26px; font-weight: 400; }
+.text-l-medium { font-size: 18px; line-height: 26px; font-weight: 500; color: var(--color-black); }
+.text-m { font-size: 16px; line-height: 24px; font-weight: 400; }
+
+/* ===== Иконка стрелки (инлайн, без картинок) ===== */
+.icon-arrow {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.icon-arrow svg { display: block; width: 100%; height: 100%; }
+
+/* ===== Плейсхолдер для ещё не загруженных картинок ===== */
+.img-box {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--color-gray-100);
+}
+.img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.img-placeholder {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  color: #9AA0A3;
+  font-size: 14px;
+  line-height: 20px;
+  background:
+    repeating-linear-gradient(45deg, #EDEFF0, #EDEFF0 10px, #F5F6F7 10px, #F5F6F7 20px);
+}
+.img-box.is-broken img { display: none; }
+.img-box.is-broken .img-placeholder { display: flex; }
+
+/* ===== Header controls: back button ===== */
+.back-btn {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: var(--color-white);
+  border-radius: var(--radius-pill);
+  box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+  color: var(--color-black);
+  transition: transform 0.2s ease;
+}
+.back-btn:hover { transform: scale(1.08); }
+.back-btn:active { transform: scale(0.97); }
+
+/* ===== Home link ===== */
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-gray-700);
+  transition: color 0.2s ease;
+}
+.home-link .text-l { font-size: 18px; line-height: 26px; }
+.home-link:hover { color: var(--color-black); }
+
+/* ===== Contact chips ===== */
+.contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+}
+.contact-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  background: var(--color-gray-100);
+  color: var(--color-black);
+  font-size: 18px;
+  line-height: 26px;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+.contact-chip:hover { background: var(--color-gray-200); }
+
+/* ===== Cover zoom-on-hover (использовано и на витрине, и в "других проектах") ===== */
+.case-cover {
+  position: relative;
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  display: block;
+  background: var(--color-gray-100);
+}
+.case-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.case-cover:hover img { transform: scale(1.05); }
+
+/* ===================================================== */
+/* ===================  ВИТРИНА  ======================== */
+/* ===================================================== */
+
+.portfolio-page {
+  padding: 96px 24px 140px;
+  display: flex;
+  justify-content: center;
+}
+.portfolio-content {
+  width: 100%;
+  max-width: var(--text-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 128px;
+}
+
+.hero-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 52px;
+  width: 100%;
+}
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+}
+.photo-container {
+  width: 264px;
+  height: 264px;
+  position: relative;
+}
+.photo-surface {
+  position: absolute;
+  left: 25px;
+  top: 16px;
+  width: 200px;
+  height: 209px;
+  background: var(--color-gray-100);
+  border-radius: 32px;
+  transform: rotate(-4deg);
+}
+.photo-frame {
+  position: absolute;
+  left: 43px;
+  top: 30px;
+  width: 200px;
+  height: 209px;
+  border-radius: 32px;
+  transform: rotate(2deg);
+  overflow: hidden;
+  box-shadow: 0px 4px 20px rgba(0,0,0,0.25);
+  background: var(--color-gray-100);
+  /* фикс бага Safari: overflow:hidden + border-radius + transform иногда
+     обрезают скруглённые уголки неточно, особенно на маленьких размерах.
+     Маска вместо overflow-clip решает проблему во всех браузерах. */
+  -webkit-mask-image: -webkit-radial-gradient(circle, #fff 100%, #000 100%);
+  mask-image: radial-gradient(circle, #fff 100%, #000 100%);
+}
+.photo-frame img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+
+.intro { display: flex; flex-direction: column; gap: 24px; text-align: center; width: 100%; }
+.intro .h1 { }
+.intro a { text-decoration: underline; }
+
+.cases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+  width: 100%;
+}
+.case-item { display: flex; flex-direction: column; gap: 24px; width: 100%; }
+.case-item .case-cover { aspect-ratio: 800 / 569; }
+.case-item .case-desc { display: flex; flex-direction: column; gap: 8px; }
+.case-item .case-desc .title { color: var(--color-black); font-size: 24px; line-height: 32px; font-weight: 600; }
+
+.about-me { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+.about-me .skills { display: flex; flex-direction: column; gap: 16px; }
+.about-me ul { list-style: disc; padding-left: 27px; }
+
+/* ===================================================== */
+/* ===================  СТРАНИЦА КЕЙСА  ================= */
+/* ===================================================== */
+
+.case-page {
+  padding: 96px 24px 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+}
+.case-content {
+  width: 100%;
+  max-width: var(--content-width);
+  display: flex;
+  flex-direction: column;
+  gap: 96px;
+}
+
+.case-hero { display: flex; flex-direction: column; gap: 64px; width: 100%; }
+.case-hero .case-cover { width: 100%; }
+
+.case-section { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+.case-section .h2 { max-width: var(--text-width); }
+.section-groups { display: flex; flex-direction: column; gap: 64px; width: 100%; }
+.section-group { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+.section-group-text { display: flex; flex-direction: column; gap: 16px; max-width: var(--text-width); }
+.section-group p.text-l,
+.case-section > p.text-l,
+.section-group-text .text-l,
+.section-group ul.text-l { color: var(--color-gray-700); max-width: var(--text-width); }
+
+.case-image { width: 100%; }
+.case-image.is-full { }
+
+/* Task / list-heavy sections that use a narrower column */
+.task-groups { display: flex; flex-direction: column; gap: 32px; }
+.task-group { display: flex; flex-direction: column; gap: 16px; max-width: var(--text-width); width: 100%; }
+
+/* Other works block */
+.other-works { display: flex; flex-direction: column; align-items: center; gap: 32px; width: 100%; }
+.other-works-grid { display: flex; gap: 40px; width: 100%; }
+.other-work-card { display: flex; flex-direction: column; gap: 24px; flex: 1; }
+.other-work-card .case-cover { aspect-ratio: 480 / 341; }
+.other-work-card .desc { display: flex; flex-direction: column; gap: 8px; }
+
+.case-page .home-link { margin-top: 0; }
+
+hr.spacer { border: none; }
+
+/* ===================================================== */
+/* =======================  АДАПТИВ  ==================== */
+/* ===================================================== */
+
+/* ---------- ПЛАНШЕТ: 600–1023px (ориентир — фрейм 744px) ---------- */
+@media (min-width: 600px) and (max-width: 1023px) {
+
+  .case-page, .portfolio-page { padding-left: 40px; padding-right: 40px; padding-top: 84px; padding-bottom: 112px; }
+
+  .h1 { font-size: 34px; line-height: 42px; }
+  .h2 { font-size: 27px; line-height: 34px; }
+  .h3 { font-size: 21px; line-height: 28px; }
+  .text-l, .section-group p.text-l, .case-section > p.text-l, .section-group-text .text-l, .section-group ul.text-l { font-size: 16px; line-height: 24px; }
+  .text-l-medium { font-size: 16px; line-height: 24px; }
+  .text-m { font-size: 14px; line-height: 22px; }
+
+  .portfolio-content { gap: 100px; }
+  .hero-block { gap: 40px; }
+  .hero-content { gap: 28px; }
+  .cases-list { gap: 64px; }
+  .case-item { gap: 20px; }
+  .about-me { gap: 28px; }
+  .about-me .skills { gap: 14px; }
+
+  .photo-container { width: 224px; height: 224px; }
+  .photo-surface { left: 21px; top: 14px; width: 170px; height: 178px; border-radius: 27px; }
+  .photo-frame { left: 37px; top: 26px; width: 170px; height: 178px; border-radius: 27px; }
+
+  .contacts { gap: 14px; }
+  .contact-chip { padding: 10px 20px; font-size: 16px; line-height: 24px; }
+
+  .case-content { gap: 72px; }
+  .case-hero { gap: 48px; }
+  .case-section { gap: 28px; }
+  .section-groups { gap: 48px; }
+  .section-group { gap: 28px; }
+  .section-group-text { gap: 14px; }
+  .task-groups { gap: 28px; }
+  .task-group { gap: 14px; }
+  .other-works { gap: 28px; }
+  .other-works-grid { gap: 28px; }
+  .other-work-card { gap: 20px; }
+  .other-work-card .desc { gap: 6px; }
+
+  .back-btn { width: 52px; height: 52px; top: 20px; left: 20px; }
+  .home-link { gap: 4px; }
+}
+
+/* ---------- МОБИЛКА: ≤599px (ориентир — фрейм 390px) ---------- */
+@media (max-width: 599px) {
+
+  .case-page, .portfolio-page { padding-left: 20px; padding-right: 20px; padding-top: 76px; padding-bottom: 88px; }
+
+  .h1 { font-size: 26px; line-height: 32px; }
+  .h2 { font-size: 21px; line-height: 27px; }
+  .h3 { font-size: 17px; line-height: 23px; }
+  .text-l, .section-group p.text-l, .case-section > p.text-l, .section-group-text .text-l, .section-group ul.text-l { font-size: 14px; line-height: 20px; }
+  .text-l-medium { font-size: 15px; line-height: 21px; }
+  .text-m { font-size: 13px; line-height: 18px; }
+
+  .portfolio-content { gap: 64px; }
+  .hero-block { gap: 24px; }
+  .hero-content { gap: 18px; }
+  .intro { gap: 14px; }
+  .cases-list { gap: 40px; }
+  .case-item { gap: 12px; }
+  .case-item .case-desc { gap: 6px; }
+  .about-me { gap: 18px; }
+  .about-me .skills { gap: 10px; }
+  ul li { margin-bottom: 6px; }
+
+  .photo-container { width: 160px; height: 160px; }
+  .photo-surface { left: 15px; top: 10px; width: 122px; height: 127px; border-radius: 20px; }
+  .photo-frame { left: 26px; top: 18px; width: 122px; height: 127px; border-radius: 20px; }
+
+  .contacts { gap: 10px; row-gap: 10px; }
+  .contact-chip { padding: 8px 16px; font-size: 14px; line-height: 20px; }
+
+  .case-content { gap: 48px; }
+  .case-hero { gap: 32px; }
+  .case-section { gap: 20px; }
+  .section-groups { gap: 32px; }
+  .section-group { gap: 20px; }
+  .section-group-text { gap: 10px; }
+  .task-groups { gap: 20px; }
+  .task-group { gap: 10px; }
+  .other-works { gap: 20px; }
+  .other-works-grid { flex-direction: column; gap: 32px; }
+  .other-work-card { gap: 14px; }
+  .other-work-card .desc { gap: 4px; }
+
+  .back-btn { width: 48px; height: 48px; top: 20px; left: 20px; }
+  .icon-arrow { width: 20px; height: 20px; }
+  .home-link { gap: 4px; }
+  .home-link .text-l { font-size: 14px; line-height: 20px; }
+}
+
+</style>
+</head>
+<body data-page="case">
+
+<a class="back-btn" href="index.html" onclick="sessionStorage.setItem('restoreScroll','1')" aria-label="Назад на витрину">
+  <span class="icon-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+</a>
+
+<main class="case-page">
+  <div class="case-content">
+
+    <!-- HERO -->
+    <section class="case-hero">
+      <p class="h1">Как я упростил CRM для менеджеров (B2B)</p>
+      <div class="case-cover img-box case-image" style="aspect-ratio:1000/669;">
+        <img src="images/crm/hero.png" alt="Обложка кейса CRM" loading="lazy">
+        <div class="img-placeholder">Фрейм «обложка» (hero) →<br>images/crm/hero.png</div>
+      </div>
+    </section>
+
+    <!-- CONTEXT -->
+    <section class="case-section">
+      <p class="h2">Контекст</p>
+      <div class="text-l" style="max-width:800px;">
+        <p>Этот кейс основан на реальной задаче, над которой я работал в Медрокет. В рамках проекта я занимался редизайном страницы клиента — одного из ключевых экранов CRM-системы, которую компания использует для работы с медицинскими организациями. Менеджеры ежедневно используют эту страницу для сопровождения клиентов и мониторинга показателей.</p>
+        <br>
+        <p>Из-за ограничений NDA я не могу показывать оригинальный интерфейс системы, поэтому адаптировал кейс под сферу недвижимости. Все данные и контент я заменил на вымышленные, сохранив структуру страницы, логику работы и сценарии.</p>
+      </div>
+    </section>
+
+    <!-- RESEARCH -->
+    <section class="case-section">
+      <p class="h2">Исследование</p>
+      <div class="section-groups">
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">UX-аудит текущего решения</p>
+            <p class="text-l">Чтобы понять, какие проблемы могут возникнуть при работе со страницей клиента в CRM, я провёл аудит текущего интерфейса.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/1792;">
+            <img src="images/crm/audit.png" alt="Текущее решение — UX-аудит" loading="lazy">
+            <div class="img-placeholder">Фрейм «Текущее решение» (research → section1) →<br>images/crm/audit.png</div>
+          </div>
+          <div class="text-l" style="max-width:800px;">
+            <p>В результате я выделил четыре основные группы болей:</p>
+            <ul style="list-style:disc;padding-left:27px;margin-top:8px;">
+              <li>Отсутствие акцента на критических показателях</li>
+              <li>Отсутствие автоматизации рутинных действий</li>
+              <li>Перегруженность интерфейса</li>
+              <li>Неполные пользовательские сценарии. Некоторые действия невозможно выполнить в рамках CRM, из-за чего менеджерам приходится переходить во внешние инструменты</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Анализ ключевых сценариев</p>
+            <p class="text-l">Я визуализировал ключевые сценарии в виде схем и отметил шаги, на которых возникают проблемы у пользователя.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/977;">
+            <img src="images/crm/userflow1.png" alt="Userflow 1" loading="lazy">
+            <div class="img-placeholder">Фрейм «userflow1» →<br>images/crm/userflow1.png</div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/871;">
+            <img src="images/crm/userflow2.png" alt="Userflow 2" loading="lazy">
+            <div class="img-placeholder">Фрейм «userflow2» →<br>images/crm/userflow2.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Определение проблемы</p>
+            <p class="text-l">Перегруженность интерфейса и отсутствие визуальной иерархии мешают менеджерам быстро находить ключевую информацию, фокусироваться на приоритетных задачах и оперативно фиксировать взаимодействия с клиентом.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TASK -->
+    <section class="case-section">
+      <p class="h2">Понимание задачи</p>
+      <div class="task-groups">
+        <div class="task-group">
+          <p class="h3">Задача</p>
+          <p class="text-l">Оптимизировать страницу клиента в CRM, чтобы повысить эффективность менеджеров при работе с клиентом.</p>
+        </div>
+        <div class="task-group">
+          <p class="h3">Целевая аудитория:</p>
+          <p class="text-l">Менеджеры по продажам, ежедневно работающие с клиентской базой в CRM и отвечающие за удержание и развитие клиентов.</p>
+        </div>
+        <div class="task-group">
+          <p class="h3">Ценность для пользователя</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Ускорение поиска ключевой информации</li>
+            <li>Быстрая фиксация взаимодействий</li>
+            <li>Автоматизация плановых задач</li>
+          </ul>
+        </div>
+        <div class="task-group">
+          <p class="h3">Ценность для бизнеса</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Повышение продуктивности менеджеров</li>
+            <li>Улучшение проработки клиентов</li>
+            <li>Больше подключённых услуг</li>
+          </ul>
+        </div>
+        <div class="task-group">
+          <p class="h3">Критерии успеха</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Сокращение среднего времени проработки клиента в CRM</li>
+            <li>Рост количества клиентов, обработанных одним менеджером за период</li>
+            <li>Снижение доли клиентов с критическими показателями/недоработками</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- HYPOTHESES -->
+    <section class="case-section">
+      <p class="h2">Гипотезы решений</p>
+      <div class="section-groups">
+
+        <div class="section-group">
+          <p class="text-l" style="max-width:800px;">Для каждой боли, выявленной в ходе анализа, я сформулировал гипотезы решений, направленные на снижение когнитивной нагрузки и ускорение работы с клиентом.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/638;">
+            <img src="images/crm/hypotheses-table.png" alt="Таблица гипотез" loading="lazy">
+            <div class="img-placeholder">Фрейм «Таблица гипотез» →<br>images/crm/hypotheses-table.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Гипотеза 1. Проверка баланса по договору</p>
+            <p class="text-l">Если сгруппировать информацию по каждому договору и визуально подсвечивать критические показатели, то менеджер быстрее определит проблемные счета.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/449;">
+            <img src="images/crm/hypothesis-1.png" alt="Гипотеза 1" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза1» →<br>images/crm/hypothesis-1.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Гипотеза 2. Выставление счёта</p>
+            <p class="text-l">Если добавить возможность сразу выставить счёт из карточки договора, то скорость работы менеджера увеличится, т.к. ему не придётся переходить в почту.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/515;">
+            <img src="images/crm/hypothesis-2.png" alt="Гипотеза 2" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза2» →<br>images/crm/hypothesis-2.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Гипотеза 3. Проверка показателей филиала</p>
+            <p class="text-l">Если совместить «Филиалы» и «Интеграцию» в один блок, а недоработки визуально выделять, то сократится время поиска недоработок, т.к. менеджер будет быстро понимать где проблема.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/515;">
+            <img src="images/crm/hypothesis-3.png" alt="Гипотеза 3" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза3» →<br>images/crm/hypothesis-3.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Гипотеза 4. Связь с клиентом</p>
+            <p class="text-l">Если связь с клиентом будет происходить в рамках CRM, то время обработки клиента значительно сократится, т.к. менеджер не будет терять контекст текущего сценария.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/469;">
+            <img src="images/crm/hypothesis-4.png" alt="Гипотеза 4" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза4» →<br>images/crm/hypothesis-4.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Гипотеза 5. Фиксация взаимодействий с клиентом</p>
+            <p class="text-l">Если в качестве результата взаимодействия можно будет выбирать задачи из плана, то скорость работы менеджера увеличится, т.к. не придётся тратить время на рутину и ручной ввод.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/524;">
+            <img src="images/crm/hypothesis-5.png" alt="Гипотеза 5" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза5» →<br>images/crm/hypothesis-5.png</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- FINAL DESIGN -->
+    <section class="case-section">
+      <p class="h2">Финальный дизайн</p>
+      <div class="section-groups">
+        <div class="section-group">
+          <div class="text-l" style="max-width:800px;">
+            <p>Одной из ключевых проблем старого интерфейса было отсутствие акцента на критических показателях: балансы и статусы по филиалам терялись среди второстепенных данных.</p>
+            <br>
+            <p>В новом дизайне критические показатели выделены цветом, структура упрощена, а важная информация вынесена в верхнюю часть страницы. Благодаря этому страница стала проще для восприятия и время на поиск нужной информации снизилось.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/1236;">
+            <img src="images/crm/final-design.png" alt="Финальный макет" loading="lazy">
+            <div class="img-placeholder">Фрейм «Финальный макет» →<br>images/crm/final-design.png</div>
+          </div>
+        </div>
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Проработка состояний</p>
+            <p class="text-l">Для основных интерактивных блоков я проработал логику поведения элементов и все возможные состояния (создание, редактирование, массовое выделение, переполнение списков и т.д.), чтобы полностью описать поведение интерфейса и подготовить макеты к передаче в разработку.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/crm/states.png" alt="Состояния" loading="lazy">
+            <div class="img-placeholder">Фрейм «Состояния» →<br>images/crm/states.png</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHANGES -->
+    <section class="case-section">
+      <p class="h2">Как изменились ключевые сценарии</p>
+      <div class="section-groups">
+        <div class="section-group">
+          <p class="h3" style="max-width:800px;">1. Выставление счёта по договору с истекающим балансом</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/1160;">
+            <img src="images/crm/scenario1.png" alt="Сценарий 1" loading="lazy">
+            <div class="img-placeholder">Фрейм «сценарий1» →<br>images/crm/scenario1.png</div>
+          </div>
+        </div>
+        <div class="section-group">
+          <p class="h3" style="max-width:800px;">2. Поиск недоработок и фиксация взаимодействий</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/1846;">
+            <img src="images/crm/scenario2.png" alt="Сценарий 2" loading="lazy">
+            <div class="img-placeholder">Фрейм «сценарий2» →<br>images/crm/scenario2.png</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="case-section">
+      <p class="h2">Итоги работы</p>
+      <div class="task-groups">
+        <div class="task-group">
+          <p class="h3">✅ Что удалось реализовать</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Информация стала более структурированной и сгруппирована в отдельные смысловые блоки, что упрощает сканирование страницы</li>
+            <li>Ключевые показатели визуально выделены, что позволяет быстрее находить проблемные зоны и устранять недоработки</li>
+            <li>Сценарий выставления счёта по договору теперь происходит в рамках интерфейса CRM и состоит из 2–3 шагов вместо 7</li>
+          </ul>
+        </div>
+        <div class="task-group">
+          <p class="h3">🔍 Как проверял</p>
+          <p class="text-l">Для финальной проверки решений я провёл сравнительный тест исходной и обновлённой версии страницы, где участникам теста предлагалось выполнить основные задачи менеджера. В результате участники быстрее находили информацию благодаря визуальной иерархии и акцентам на критических показателях.</p>
+        </div>
+        <div class="task-group">
+          <p class="h3">📈 Ожидаемый эффект</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Сокращение среднего времени проработки клиента в CRM</li>
+            <li>Рост количества клиентов, обработанных одним менеджером за период</li>
+            <li>Снижение доли клиентов с критическими показателями/недоработками</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- OTHER WORKS -->
+    <section class="other-works">
+      <p class="h2">Другие проекты</p>
+      <div class="other-works-grid">
+        <a class="other-work-card" href="case-prodoctorov.html">
+          <div class="case-cover img-box">
+            <img src="images/cover-prodoctorov.png" alt="Обложка кейса ПроДокторов" loading="lazy">
+            <div class="img-placeholder">Та же обложка, что на витрине →<br>images/cover-prodoctorov.png</div>
+          </div>
+          <div class="desc">
+            <p class="text-l-medium">Как я сократил сценарий записи к врачу в 2 раза</p>
+            <p class="text-m">Новое решение позволяет выбрать врача и записаться прямо с карты, сократив путь пользователя с 11 до 6 шагов, а среднее время прохождения сценария — с 1:59 до 29 секунд.</p>
+          </div>
+        </a>
+        <a class="other-work-card" href="case-tbank.html">
+          <div class="case-cover img-box">
+            <img src="images/cover-tbank.png" alt="Обложка кейса Т-банк" loading="lazy">
+            <div class="img-placeholder">Та же обложка, что на витрине →<br>images/cover-tbank.png</div>
+          </div>
+          <div class="desc">
+            <p class="text-l-medium">Организация совместных поездок в Т-банке</p>
+            <p class="text-m">С помощью Claude спроектировал и протестировал функционал совместных поездок, который объединяет планирование, сбор средств и контроль общих расходов внутри приложения на протяжении всей поездки. В сценарий также интегрированы существующие возможности и сервисы экосистемы Т-Банка.</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <a class="home-link" href="index.html" onclick="sessionStorage.removeItem('restoreScroll')">
+      <span class="icon-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="text-l">На главную</span>
+    </a>
+
+  </div>
+</main>
+
+<script>
+// Отключаем автоматическое восстановление скролла браузером —
+// мы управляем этим сами (кнопка "назад" возвращает в то же место витрины).
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
+// ===== Витрина: запоминаем позицию скролла =====
+const isIndexPage = document.body.dataset.page === 'index';
+
+if (isIndexPage) {
+  let saveTimer = null;
+  window.addEventListener('scroll', () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      sessionStorage.setItem('indexScrollY', String(window.scrollY));
+    }, 80);
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const shouldRestore = sessionStorage.getItem('restoreScroll') === '1';
+    if (shouldRestore) {
+      const y = parseInt(sessionStorage.getItem('indexScrollY') || '0', 10);
+      // ждём отрисовки макета перед скроллом
+      requestAnimationFrame(() => {
+        window.scrollTo(0, y);
+      });
+      sessionStorage.removeItem('restoreScroll');
+    } else {
+      window.scrollTo(0, 0);
+    }
+  });
+}
+
+// ===== Плейсхолдеры для картинок, которые ещё не экспортированы =====
+document.addEventListener(
+  'error',
+  (event) => {
+    const target = event.target;
+    if (target && target.tagName === 'IMG' && target.closest('.img-box')) {
+      target.closest('.img-box').classList.add('is-broken');
+    }
+  },
+  true
+);
+
+</script>
+</body>
+</html>

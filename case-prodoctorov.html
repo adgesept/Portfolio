@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Как я сократил сценарий записи к врачу в 2 раза — Ваге Цатурян</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Дизайн-токены (взяты из Figma) ===== */
+:root {
+  --color-black: #232323;
+  --color-gray-700: #404446;
+  --color-gray-200: #E1E1E1;
+  --color-gray-100: #F2F4F5;
+  --color-white: #FFFFFF;
+
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --radius-l: 24px;
+  --radius-m: 16px;
+  --radius-pill: 40px;
+
+  --content-width: 1000px;
+  --text-width: 800px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-main);
+  color: var(--color-gray-700);
+  background: var(--color-white);
+  -webkit-font-smoothing: antialiased;
+}
+
+img { display: block; max-width: 100%; }
+
+a { text-decoration: none; color: inherit; }
+
+ul { margin: 0; padding: 0; }
+li { margin-bottom: 8px; }
+li:last-child { margin-bottom: 0; }
+
+p { margin: 0; }
+
+/* ===== Типографика ===== */
+.h1 { font-size: 40px; line-height: 48px; font-weight: 600; color: var(--color-black); margin: 0; }
+.h2 { font-size: 32px; line-height: 40px; font-weight: 600; color: var(--color-black); margin: 0; }
+.h3 { font-size: 24px; line-height: 32px; font-weight: 600; color: var(--color-black); margin: 0; }
+.text-l { font-size: 18px; line-height: 26px; font-weight: 400; }
+.text-l-medium { font-size: 18px; line-height: 26px; font-weight: 500; color: var(--color-black); }
+.text-m { font-size: 16px; line-height: 24px; font-weight: 400; }
+
+/* ===== Иконка стрелки (инлайн, без картинок) ===== */
+.icon-arrow {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.icon-arrow svg { display: block; width: 100%; height: 100%; }
+
+/* ===== Плейсхолдер для ещё не загруженных картинок ===== */
+.img-box {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--color-gray-100);
+}
+.img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.img-placeholder {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  color: #9AA0A3;
+  font-size: 14px;
+  line-height: 20px;
+  background:
+    repeating-linear-gradient(45deg, #EDEFF0, #EDEFF0 10px, #F5F6F7 10px, #F5F6F7 20px);
+}
+.img-box.is-broken img { display: none; }
+.img-box.is-broken .img-placeholder { display: flex; }
+
+/* ===== Header controls: back button ===== */
+.back-btn {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: var(--color-white);
+  border-radius: var(--radius-pill);
+  box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+  color: var(--color-black);
+  transition: transform 0.2s ease;
+}
+.back-btn:hover { transform: scale(1.08); }
+.back-btn:active { transform: scale(0.97); }
+
+/* ===== Home link ===== */
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-gray-700);
+  transition: color 0.2s ease;
+}
+.home-link .text-l { font-size: 18px; line-height: 26px; }
+.home-link:hover { color: var(--color-black); }
+
+/* ===== Contact chips ===== */
+.contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+}
+.contact-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  background: var(--color-gray-100);
+  color: var(--color-black);
+  font-size: 18px;
+  line-height: 26px;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+.contact-chip:hover { background: var(--color-gray-200); }
+
+/* ===== Cover zoom-on-hover (использовано и на витрине, и в "других проектах") ===== */
+.case-cover {
+  position: relative;
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  display: block;
+  background: var(--color-gray-100);
+}
+.case-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.case-cover:hover img { transform: scale(1.05); }
+
+/* ===================================================== */
+/* ===================  ВИТРИНА  ======================== */
+/* ===================================================== */
+
+.portfolio-page {
+  padding: 96px 24px 140px;
+  display: flex;
+  justify-content: center;
+}
+.portfolio-content {
+  width: 100%;
+  max-width: var(--text-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 128px;
+}
+
+.hero-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 52px;
+  width: 100%;
+}
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+}
+.photo-container {
+  width: 264px;
+  height: 264px;
+  position: relative;
+}
+.photo-surface {
+  position: absolute;
+  left: 25px;
+  top: 16px;
+  width: 200px;
+  height: 209px;
+  background: var(--color-gray-100);
+  border-radius: 32px;
+  transform: rotate(-4deg);
+}
+.photo-frame {
+  position: absolute;
+  left: 43px;
+  top: 30px;
+  width: 200px;
+  height: 209px;
+  border-radius: 32px;
+  transform: rotate(2deg);
+  overflow: hidden;
+  box-shadow: 0px 4px 20px rgba(0,0,0,0.25);
+  background: var(--color-gray-100);
+  /* фикс бага Safari: overflow:hidden + border-radius + transform иногда
+     обрезают скруглённые уголки неточно, особенно на маленьких размерах.
+     Маска вместо overflow-clip решает проблему во всех браузерах. */
+  -webkit-mask-image: -webkit-radial-gradient(circle, #fff 100%, #000 100%);
+  mask-image: radial-gradient(circle, #fff 100%, #000 100%);
+}
+.photo-frame img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+
+.intro { display: flex; flex-direction: column; gap: 24px; text-align: center; width: 100%; }
+.intro .h1 { }
+.intro a { text-decoration: underline; }
+
+.cases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+  width: 100%;
+}
+.case-item { display: flex; flex-direction: column; gap: 24px; width: 100%; }
+.case-item .case-cover { aspect-ratio: 800 / 569; }
+.case-item .case-desc { display: flex; flex-direction: column; gap: 8px; }
+.case-item .case-desc .title { color: var(--color-black); font-size: 24px; line-height: 32px; font-weight: 600; }
+
+.about-me { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+.about-me .skills { display: flex; flex-direction: column; gap: 16px; }
+.about-me ul { list-style: disc; padding-left: 27px; }
+
+/* ===================================================== */
+/* ===================  СТРАНИЦА КЕЙСА  ================= */
+/* ===================================================== */
+
+.case-page {
+  padding: 96px 24px 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+}
+.case-content {
+  width: 100%;
+  max-width: var(--content-width);
+  display: flex;
+  flex-direction: column;
+  gap: 96px;
+}
+
+.case-hero { display: flex; flex-direction: column; gap: 64px; width: 100%; }
+.case-hero .case-cover { width: 100%; }
+
+.case-section { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+.case-section .h2 { max-width: var(--text-width); }
+.section-groups { display: flex; flex-direction: column; gap: 64px; width: 100%; }
+.section-group { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+.section-group-text { display: flex; flex-direction: column; gap: 16px; max-width: var(--text-width); }
+.section-group p.text-l,
+.case-section > p.text-l,
+.section-group-text .text-l,
+.section-group ul.text-l { color: var(--color-gray-700); max-width: var(--text-width); }
+
+.case-image { width: 100%; }
+.case-image.is-full { }
+
+/* Task / list-heavy sections that use a narrower column */
+.task-groups { display: flex; flex-direction: column; gap: 32px; }
+.task-group { display: flex; flex-direction: column; gap: 16px; max-width: var(--text-width); width: 100%; }
+
+/* Other works block */
+.other-works { display: flex; flex-direction: column; align-items: center; gap: 32px; width: 100%; }
+.other-works-grid { display: flex; gap: 40px; width: 100%; }
+.other-work-card { display: flex; flex-direction: column; gap: 24px; flex: 1; }
+.other-work-card .case-cover { aspect-ratio: 480 / 341; }
+.other-work-card .desc { display: flex; flex-direction: column; gap: 8px; }
+
+.case-page .home-link { margin-top: 0; }
+
+hr.spacer { border: none; }
+
+/* ===================================================== */
+/* =======================  АДАПТИВ  ==================== */
+/* ===================================================== */
+
+/* ---------- ПЛАНШЕТ: 600–1023px (ориентир — фрейм 744px) ---------- */
+@media (min-width: 600px) and (max-width: 1023px) {
+
+  .case-page, .portfolio-page { padding-left: 40px; padding-right: 40px; padding-top: 84px; padding-bottom: 112px; }
+
+  .h1 { font-size: 34px; line-height: 42px; }
+  .h2 { font-size: 27px; line-height: 34px; }
+  .h3 { font-size: 21px; line-height: 28px; }
+  .text-l, .section-group p.text-l, .case-section > p.text-l, .section-group-text .text-l, .section-group ul.text-l { font-size: 16px; line-height: 24px; }
+  .text-l-medium { font-size: 16px; line-height: 24px; }
+  .text-m { font-size: 14px; line-height: 22px; }
+
+  .portfolio-content { gap: 100px; }
+  .hero-block { gap: 40px; }
+  .hero-content { gap: 28px; }
+  .cases-list { gap: 64px; }
+  .case-item { gap: 20px; }
+  .about-me { gap: 28px; }
+  .about-me .skills { gap: 14px; }
+
+  .photo-container { width: 224px; height: 224px; }
+  .photo-surface { left: 21px; top: 14px; width: 170px; height: 178px; border-radius: 27px; }
+  .photo-frame { left: 37px; top: 26px; width: 170px; height: 178px; border-radius: 27px; }
+
+  .contacts { gap: 14px; }
+  .contact-chip { padding: 10px 20px; font-size: 16px; line-height: 24px; }
+
+  .case-content { gap: 72px; }
+  .case-hero { gap: 48px; }
+  .case-section { gap: 28px; }
+  .section-groups { gap: 48px; }
+  .section-group { gap: 28px; }
+  .section-group-text { gap: 14px; }
+  .task-groups { gap: 28px; }
+  .task-group { gap: 14px; }
+  .other-works { gap: 28px; }
+  .other-works-grid { gap: 28px; }
+  .other-work-card { gap: 20px; }
+  .other-work-card .desc { gap: 6px; }
+
+  .back-btn { width: 52px; height: 52px; top: 20px; left: 20px; }
+  .home-link { gap: 4px; }
+}
+
+/* ---------- МОБИЛКА: ≤599px (ориентир — фрейм 390px) ---------- */
+@media (max-width: 599px) {
+
+  .case-page, .portfolio-page { padding-left: 20px; padding-right: 20px; padding-top: 76px; padding-bottom: 88px; }
+
+  .h1 { font-size: 26px; line-height: 32px; }
+  .h2 { font-size: 21px; line-height: 27px; }
+  .h3 { font-size: 17px; line-height: 23px; }
+  .text-l, .section-group p.text-l, .case-section > p.text-l, .section-group-text .text-l, .section-group ul.text-l { font-size: 14px; line-height: 20px; }
+  .text-l-medium { font-size: 15px; line-height: 21px; }
+  .text-m { font-size: 13px; line-height: 18px; }
+
+  .portfolio-content { gap: 64px; }
+  .hero-block { gap: 24px; }
+  .hero-content { gap: 18px; }
+  .intro { gap: 14px; }
+  .cases-list { gap: 40px; }
+  .case-item { gap: 12px; }
+  .case-item .case-desc { gap: 6px; }
+  .about-me { gap: 18px; }
+  .about-me .skills { gap: 10px; }
+  ul li { margin-bottom: 6px; }
+
+  .photo-container { width: 160px; height: 160px; }
+  .photo-surface { left: 15px; top: 10px; width: 122px; height: 127px; border-radius: 20px; }
+  .photo-frame { left: 26px; top: 18px; width: 122px; height: 127px; border-radius: 20px; }
+
+  .contacts { gap: 10px; row-gap: 10px; }
+  .contact-chip { padding: 8px 16px; font-size: 14px; line-height: 20px; }
+
+  .case-content { gap: 48px; }
+  .case-hero { gap: 32px; }
+  .case-section { gap: 20px; }
+  .section-groups { gap: 32px; }
+  .section-group { gap: 20px; }
+  .section-group-text { gap: 10px; }
+  .task-groups { gap: 20px; }
+  .task-group { gap: 10px; }
+  .other-works { gap: 20px; }
+  .other-works-grid { flex-direction: column; gap: 32px; }
+  .other-work-card { gap: 14px; }
+  .other-work-card .desc { gap: 4px; }
+
+  .back-btn { width: 48px; height: 48px; top: 20px; left: 20px; }
+  .icon-arrow { width: 20px; height: 20px; }
+  .home-link { gap: 4px; }
+  .home-link .text-l { font-size: 14px; line-height: 20px; }
+}
+
+</style>
+</head>
+<body data-page="case">
+
+<a class="back-btn" href="index.html" onclick="sessionStorage.setItem('restoreScroll','1')" aria-label="Назад на витрину">
+  <span class="icon-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+</a>
+
+<main class="case-page">
+  <div class="case-content">
+
+    <!-- HERO -->
+    <section class="case-hero">
+      <p class="h1">Как я сократил сценарий записи к врачу в 2 раза</p>
+      <div class="case-cover img-box case-image" style="aspect-ratio:1000/711;">
+        <img src="images/prodoctorov/hero.png" alt="Обложка кейса ПроДокторов" loading="lazy">
+        <div class="img-placeholder">Фрейм «обложка» (hero) →<br>images/prodoctorov/hero.png</div>
+      </div>
+    </section>
+
+    <!-- CONTEXT -->
+    <section class="case-section">
+      <p class="h2">Контекст</p>
+      <div class="text-l" style="max-width:800px;">
+        <p>ПроДокторов (22M+ MAU) — один из ключевых продуктов компании МедРокет и крупнейший в России медицинский портал для поиска врачей и клиник на основе реальных отзывов пациентов.</p>
+        <br>
+        <p>Так как я сам регулярно пользовался этим сервисом и неоднократно сталкивался с трудностями при поиске врача на карте, я решил самостоятельно исследовать мобильную версию продукта и проверить, насколько далеко смогу продвинуться без постановки задачи со стороны продакта/дизайн-лида. Мне хотелось разобраться, какие именно проблемы возникают в этом сценарии и почему мне, как пользователю, приходится тратить больше времени на поиск подходящего врача на карте.</p>
+      </div>
+    </section>
+
+    <!-- AS-IS ANALYSIS -->
+    <section class="case-section">
+      <p class="h2">Анализ текущего решения</p>
+      <div class="section-groups">
+        <div class="section-group">
+          <p class="text-l" style="max-width:800px;">Я проанализировал весь сценарий поиска врача на карте, чтобы выявить повторяющиеся UX-проблемы и нарушения эвристик. Ниже показаны фрагменты анализа ключевых экранов.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/849;">
+            <img src="images/prodoctorov/as-is.png" alt="Анализ текущего решения" loading="lazy">
+            <div class="img-placeholder">Фрейм «анализ текущего решения» →<br>images/prodoctorov/as-is.png</div>
+          </div>
+        </div>
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Гипотезы проблем</p>
+            <p class="text-l">На основе анализа я сформулировал 7 гипотез проблем, которые требовали дальнейшей проверки на пользователях.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/prodoctorov/problem-hypotheses.png" alt="Гипотезы проблем" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотезы проблем» →<br>images/prodoctorov/problem-hypotheses.png</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HYPOTHESIS VALIDATION -->
+    <section class="case-section">
+      <p class="h2">UX-тестирование и валидация гипотез</p>
+      <div class="section-groups">
+        <div class="section-group">
+          <p class="text-l" style="max-width:800px;">Чтобы проверить сформулированные гипотезы я провёл несколько быстрых сессий по методу think-aloud: участники выполняли задание и вслух проговаривали свои действия и мысли.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/542;">
+            <img src="images/prodoctorov/test-goals.png" alt="Цели тестов" loading="lazy">
+            <div class="img-placeholder">Фрейм «цели тестов» →<br>images/prodoctorov/test-goals.png</div>
+          </div>
+          <p class="text-l" style="max-width:800px;">Результаты тестов я собрал в таблицу, где критериями стали мои изначальные гипотезы. Большинство из них подтвердилось и указало на повторяющиеся проблемы сценария.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/824;">
+            <img src="images/prodoctorov/test-results.png" alt="Результаты тестов" loading="lazy">
+            <div class="img-placeholder">Фрейм «результаты тестов» →<br>images/prodoctorov/test-results.png</div>
+          </div>
+        </div>
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Что показало тестирование</p>
+            <p class="text-l">В среднем пользователям требовалось ~2 мин., чтобы записаться к врачу через карту.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/prodoctorov/test-conclusions.png" alt="Выводы из тестов" loading="lazy">
+            <div class="img-placeholder">Фрейм «выводы из тестов» →<br>images/prodoctorov/test-conclusions.png</div>
+          </div>
+        </div>
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Инсайт от респондента № 2</p>
+            <p class="text-l">«Когда я нажимаю на метки на карте, они остаются одинаковыми, и я начинаю путаться, потому что не понимаю, на какие уже нажимала. Было бы удобнее, если бы просмотренные точки как-то меняли цвет, как в поиске квартир на Авито».</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROBLEM AND TASK -->
+    <section class="case-section">
+      <p class="h2">Проблема и постановка задачи</p>
+      <div class="task-groups">
+        <div class="task-group">
+          <p class="h3">Проблема</p>
+          <p class="text-l">Пользователи не могут быстро найти и выбрать врача поблизости, потому что сценарий поиска через карту ориентирован на выбор клиники, а не конкретного специалиста. Из-за этого пользователи теряют контекст и совершают лишние шаги для достижения цели.</p>
+        </div>
+        <div class="task-group">
+          <p class="h3">Задача</p>
+          <p class="text-l">Оптимизировать сценарий поиска врача на карте, чтобы пользователь мог быстро выбрать специалиста и записаться на приём без потери контекста.</p>
+        </div>
+        <div class="task-group">
+          <p class="h3">Почему это важно пользователю</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Тратит много времени и попыток на поиск врача</li>
+            <li>Испытывает фрустрацию при необходимости начинать сценарий повторно</li>
+            <li>Теряет доверие к сервису</li>
+          </ul>
+        </div>
+        <div class="task-group">
+          <p class="h3">Почему это важно бизнесу</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Снижается конверсия в запись на приём</li>
+            <li>Пользователи не используют карту как быстрый способ записи</li>
+            <li>Повышается риск ухода к конкурентам с более простым сценарием</li>
+          </ul>
+        </div>
+        <div class="task-group" style="max-width:1000px;">
+          <p class="h3">Когда это важно (JTBD)</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/406;">
+            <img src="images/prodoctorov/jtbd.png" alt="JTBD" loading="lazy">
+            <div class="img-placeholder">Фрейм «jtbd» →<br>images/prodoctorov/jtbd.png</div>
+          </div>
+        </div>
+        <div class="task-group">
+          <p class="h3">Критерии успеха</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Увеличение общей конверсии в запись на приём</li>
+            <li>Рост количества записей через карту</li>
+            <li>Сокращение среднего времени поиска врача</li>
+            <li>Сокращение количества шагов для записи к врачу</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPETITOR ANALYSIS -->
+    <section class="case-section">
+      <p class="h2">Анализ конкурентов</p>
+      <div class="section-groups">
+        <div class="section-group">
+          <p class="text-l" style="max-width:800px;">После определения ключевой проблемы я проанализировал, как другие сервисы реализуют сценарий поиска врача на карте и какие решения используют.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/524;">
+            <img src="images/prodoctorov/competitors-1.png" alt="Фрагмент анализа конкурентов" loading="lazy">
+            <div class="img-placeholder">Фрейм «фрагмент анализа конкурентов 1» →<br>images/prodoctorov/competitors-1.png</div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/824;">
+            <img src="images/prodoctorov/competitors-2.png" alt="Результаты анализа конкурентов" loading="lazy">
+            <div class="img-placeholder">Фрейм «результаты анализа конкурентов» →<br>images/prodoctorov/competitors-2.png</div>
+          </div>
+        </div>
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Инсайт из анализа косвенных конкурентов</p>
+            <p class="text-l">В сервисах из смежных доменов (Яндекс.Еда, 2гис) просмотр отзывов и другой доп. информации реализован без перехода на новый экран — через шторки или табы, что позволяет сохранять контекст и не прерывать сценарий.</p>
+          </div>
+        </div>
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Выводы</p>
+            <div class="text-l">
+              <p>На основе результатов анализа я выделил 4 принципа для улучшения сценария:</p>
+              <ul style="list-style:disc;padding-left:27px;margin-top:8px;">
+                <li>Использование паттернов, не требующих перехода между экранами, поможет сохранить бесшовность сценария при просмотре отзывов врача</li>
+                <li>При выборе метки важно видеть карточку конкретного врача, а не всей клиники</li>
+                <li>Активные метки должны менять состояние, помогая ориентироваться на карте</li>
+                <li>Должна быть возможность вернуться к предыдущему шагу на любом этапе</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HYPOTHESES -->
+    <section class="case-section">
+      <p class="h2">Гипотезы решений</p>
+      <div class="section-group">
+        <p class="text-l" style="max-width:800px;">Следующим шагом я сформулировал гипотезы решений. Чтобы определить фокус работы, я разделил их на две группы и расставил приоритеты.</p>
+        <div class="img-box case-image" style="aspect-ratio:1000/865;">
+          <img src="images/prodoctorov/hypotheses.png" alt="Гипотезы" loading="lazy">
+          <div class="img-placeholder">Фрейм «Гипотезы» →<br>images/prodoctorov/hypotheses.png</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DESIGN -->
+    <section class="case-section">
+      <div class="section-group-text">
+        <p class="h2">Проектирование</p>
+        <p class="text-l">В первую очередь я сфокусировался на устранении ключевой проблемы сценария — лишних шагов при выборе врача на карте.</p>
+      </div>
+      <div class="section-groups">
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Решение № 1</p>
+            <div class="text-l">
+              <p>Гипотеза: Если при нажатии на метку будет открываться карточка врача с необходимой для записи информацией и возможностью записи, то количество лишних шагов сократится, а конверсия в запись через карты вырастет, потому что пользователи смогут выбрать специалиста без перехода в карточку клиники.</p>
+              <br>
+              <p>Я проанализировал текущую карточку врача в выдаче Продокторов, выделил необходимую для записи информацию, и на её основе спроектировал первую версию.</p>
+            </div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/545;">
+            <img src="images/prodoctorov/solution-1.png" alt="Решение 1" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 1» →<br>images/prodoctorov/solution-1.png</div>
+          </div>
+          <p class="text-l" style="max-width:800px;">Во время проектирования я столкнулся с ограничением: в одной клинике может работать несколько врачей одной специальности. Чтобы понять, как эту задачу решают другие сервисы, я вернулся к анализу конкурентов. Подходы прямых конкурентов оказались не самыми удобными, поэтому я адаптировал паттерн из сервиса Домклик.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/678;">
+            <img src="images/prodoctorov/solution-1-1.png" alt="Решение 1.1" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 1.1» →<br>images/prodoctorov/solution-1-1.png</div>
+          </div>
+          <p class="text-l" style="max-width:800px;">Далее я доработал первую версию карточки и получил финальный результат</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/890;">
+            <img src="images/prodoctorov/solution-1-2.png" alt="Решение 1.2" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 1.2» →<br>images/prodoctorov/solution-1-2.png</div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/prodoctorov/solution-1-3.png" alt="Решение 1.3" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 1.3» →<br>images/prodoctorov/solution-1-3.png</div>
+          </div>
+          <div class="section-group-text">
+            <p class="h3">Ценность для пользователя</p>
+            <ul class="text-l" style="list-style:disc;padding-left:27px;">
+              <li>Теперь вместо карточки клиники со списком всех специалистов появляется релевантная карточка конкретного врача. Пользователю не надо переходить в карточку клиники и продолжать поиск там</li>
+              <li>Карточка содержит достаточно информации для сравнения специалистов на карте</li>
+              <li>Даже при большом количестве врачей в одной локации навигация остаётся удобной благодаря сортировке</li>
+              <li>Врачей можно сохранять в избранное, не покидая сценарий</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Решение № 2</p>
+            <div class="text-l">
+              <p>Гипотеза: Если пользователь сможет просматривать отзывы прямо на карте, то сократится время поиска врача и увеличится конверсия в запись, потому что пользователи смогут быстро и без потери контекста принимать решение и просматривать доп. информацию о враче.</p>
+              <br>
+              <p>Я проанализировал текущий экран отзывов на сайте и определил, какие элементы НЕ важны в сценарии быстрого выбора врача.</p>
+            </div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/prodoctorov/solution-2.png" alt="Решение 2" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 2» →<br>images/prodoctorov/solution-2.png</div>
+          </div>
+          <p class="text-l" style="max-width:800px;">Для сохранения контекста сценария я разместил отзывы в шторке поверх карты. После просмотра пользователь может сразу вернуться к карточке врача без дополнительных переходов.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/prodoctorov/solution-2-1.png" alt="Решение 2.1" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 2.1» →<br>images/prodoctorov/solution-2-1.png</div>
+          </div>
+          <div class="section-group-text">
+            <p class="h3">Ценность для пользователя</p>
+            <ul class="text-l" style="list-style:disc;padding-left:27px;">
+              <li>Пользователь может просматривать отзывы, не покидая карту</li>
+              <li>Процесс выбора и сравнения врачей теперь происходит в рамках одного экрана.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Решение № 3</p>
+            <div class="text-l">
+              <p>Гипотеза: Если сделать режим карты заметным и доступным, то увеличится конверсия в запись через карту, потому что она всегда будет на виду и пользователи станут чаще её использовать для записи на приём.</p>
+              <br>
+              <p>Я рассмотрел 2 варианта расположения элементов управления, чтобы сделать режим карты заметнее и обеспечить быстрый доступ к сортировке без открытия фильтров. В итоге был выбран вариант № 2.</p>
+            </div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/904;">
+            <img src="images/prodoctorov/solution-3.png" alt="Решение 3" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 3» →<br>images/prodoctorov/solution-3.png</div>
+          </div>
+          <div class="section-group-text">
+            <p class="h3">Ценность для пользователя</p>
+            <ul class="text-l" style="list-style:disc;padding-left:27px;">
+              <li>Режим «На карте» находится в отдельной панели и всегда остаётся заметным</li>
+              <li>Сортировка стала доступна без открытия фильтров</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Решение № 4</p>
+            <p class="text-l">Гипотеза: Если сделать активные и просмотренные метки визуально различимыми, пользователям будет проще ориентироваться на карте и быстрее находить врача.</p>
+            <p class="text-l">Сначала я проанализировал, как в текущей версии работают состояния меток.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/prodoctorov/solution-4.png" alt="Решение 4" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 4» →<br>images/prodoctorov/solution-4.png</div>
+          </div>
+          <p class="text-l" style="max-width:800px;">Я отказался от цветового кодирования по типу клиники и ввёл отдельные состояния для активных и просмотренных меток.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/prodoctorov/solution-4-1.png" alt="Решение 4.1" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 4.1» →<br>images/prodoctorov/solution-4-1.png</div>
+          </div>
+          <p class="text-l" style="max-width:800px;">Затем перенёс параметр «Тип клиники» в фильтры и упростил навигацию по карте.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/prodoctorov/solution-4-2.png" alt="Решение 4.2" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 4.2» →<br>images/prodoctorov/solution-4-2.png</div>
+          </div>
+          <p class="text-l" style="max-width:800px;">Я пересобрал набор фильтров и оставил только те, которые помогают быстро выбрать врача конкретно в этом сценарии. Теперь фильтры открываются в шторке, где настройки можно быстро менять с помощью чипсов. Такой формат позволяет легко взаимодействовать с фильтрами в движении.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/prodoctorov/solution-4-3.png" alt="Решение 4.3" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 4.3» →<br>images/prodoctorov/solution-4-3.png</div>
+          </div>
+          <div class="section-group-text">
+            <p class="h3">Ценность для пользователя</p>
+            <ul class="text-l" style="list-style:disc;padding-left:27px;">
+              <li>Пользователи видят, какие метки уже просмотрены, и не возвращаются к ним</li>
+              <li>Активная метка всегда выделена, поэтому ориентироваться на карте проще</li>
+              <li>Тип клиники выбирается через фильтр, а все настройки находятся в одном месте</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Решение № 5</p>
+            <div class="text-l">
+              <p>Гипотеза: Если добавить поиск по ключевым словам в отзывах, то сократится время поиска врача, потому что пользователи смогут быстрее находить релевантные отзывы и быстрее принимать решение о записи на приём. Пользователь может искать отзывы по ключевым словам.</p>
+              <br>
+              <p>Найденные совпадения подсвечиваются, чтобы нужную информацию было проще сканировать.</p>
+            </div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/prodoctorov/solution-5.png" alt="Решение 5" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 5» →<br>images/prodoctorov/solution-5.png</div>
+          </div>
+          <p class="text-l" style="max-width:800px;">Если ключевое слово находится в середине или в конце длинного отзыва, в свёрнутом состоянии показывается только фрагмент вокруг него. При необходимости отзыв можно раскрыть полностью.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/533;">
+            <img src="images/prodoctorov/solution-5-1.png" alt="Решение 5.1" loading="lazy">
+            <div class="img-placeholder">Фрейм «гипотеза 5.1» →<br>images/prodoctorov/solution-5-1.png</div>
+          </div>
+          <div class="section-group-text">
+            <p class="h3">Ценность для пользователя</p>
+            <ul class="text-l" style="list-style:disc;padding-left:27px;">
+              <li>Пользователи могут быстрее находить отзывы по ключевым словам (конкретным симптомам, болезням и т.д.)</li>
+              <li>Подсветка совпадений помогает быстрее сканировать длинные отзывы</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- FINAL FLOW -->
+    <section class="case-section">
+      <p class="h2">Финальный флоу и UX-тестирование</p>
+      <div class="section-group">
+        <p class="text-l" style="max-width:800px;">Теперь, находясь в режиме карты, пользователь может в 2 клика выбрать врача и записаться на приём, не переходя в карточку клиники.</p>
+        <div class="img-box case-image" style="aspect-ratio:1000/711;">
+          <img src="images/prodoctorov/final-flow.png" alt="Финальный флоу" loading="lazy">
+          <div class="img-placeholder">Фрейм «финальный флоу» →<br>images/prodoctorov/final-flow.png</div>
+        </div>
+        <p class="text-l" style="max-width:800px;">Количество шагов сократилось с 11 до 6.</p>
+        <div class="img-box case-image" style="aspect-ratio:1000/575;">
+          <img src="images/prodoctorov/steps-before-after.png" alt="Количество шагов до и после" loading="lazy">
+          <div class="img-placeholder">Фрейм «количество шагов (до и после)» →<br>images/prodoctorov/steps-before-after.png</div>
+        </div>
+        <p class="text-l" style="max-width:800px;">Чтобы проверить эффективность изменений, я провёл быстрые UX-тесты обновлённого сценария на трёх новых респондентах.</p>
+        <div class="img-box case-image" style="aspect-ratio:1000/711;">
+          <img src="images/prodoctorov/final-test-results.png" alt="Результаты финального тестирования" loading="lazy">
+          <div class="img-placeholder">Фрейм «результаты финального тестирования» →<br>images/prodoctorov/final-test-results.png</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="case-section">
+      <p class="h2">Итоги работы</p>
+      <div class="task-groups">
+        <div class="task-group">
+          <p class="h3">Что удалось реализовать</p>
+          <div class="text-l">
+            <p>В рамках проекта я переработал сценарий поиска врача поблизости на карте, чтобы сделать его более быстрым и бесшовным. Предложенные решения позволяют пользователю сразу взаимодействовать с карточкой врача на карте и записываться на приём без перехода в карточку клиники.</p>
+            <ul style="list-style:disc;padding-left:27px;margin-top:8px;">
+              <li>Среднее время прохождения сценария — ~29 сек. (вместо 1 мин. 59 сек.)</li>
+              <li>Количество шагов для достижения цели — 6 шагов (вместо 11)</li>
+            </ul>
+          </div>
+        </div>
+        <div class="task-group">
+          <p class="h3">Ожидаемый эффект для бизнеса</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Рост конверсии в запись на приём за счёт сокращения количества шагов и упрощения сценария</li>
+            <li>Увеличение количества записей через карту благодаря более заметному режиму отображения и улучшенной навигации по карте</li>
+            <li>Усиление конкурентного преимущества за счёт объединения просмотра отзывов и записи к врачу в рамках одного сценария</li>
+          </ul>
+        </div>
+        <div class="task-group">
+          <p class="h3">Рефлексия и дальнейшее развитие</p>
+          <div class="text-l">
+            <p>Во время работы над проектом я также заметил, что похожие проблемы при поиске через карту возникают в приложении Медточка (личный кабинет пациента) и при поиске услуг и анализов на Продокторов.</p>
+            <br>
+            <p>Поэтому следующим шагом я бы привёл эти сценарии к единой и консистентной структуре, чтобы поиск поблизости работал одинаково независимо от того, что ищет пользователь: врача, клинику или медицинскую услугу. Это позволило бы сделать интерфейс более предсказуемым и снизить когнитивную нагрузку при использовании продукта.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OTHER WORKS -->
+    <section class="other-works">
+      <p class="h2">Другие проекты</p>
+      <div class="other-works-grid">
+        <a class="other-work-card" href="case-tbank.html">
+          <div class="case-cover img-box">
+            <img src="images/cover-tbank.png" alt="Обложка кейса Т-банк" loading="lazy">
+            <div class="img-placeholder">Та же обложка, что на витрине →<br>images/cover-tbank.png</div>
+          </div>
+          <div class="desc">
+            <p class="text-l-medium">Организация совместных поездок в Т-банке</p>
+            <p class="text-m">С помощью Claude спроектировал и протестировал функционал совместных поездок, который объединяет планирование, сбор средств и контроль общих расходов внутри приложения на протяжении всей поездки. В сценарий также интегрированы существующие возможности и сервисы экосистемы Т-Банка.</p>
+          </div>
+        </a>
+        <a class="other-work-card" href="case-crm.html">
+          <div class="case-cover img-box">
+            <img src="images/cover-crm.png" alt="Обложка кейса CRM" loading="lazy">
+            <div class="img-placeholder">Та же обложка, что на витрине →<br>images/cover-crm.png</div>
+          </div>
+          <div class="desc">
+            <p class="text-l-medium">Как я упростил CRM для менеджеров (B2B)</p>
+            <p class="text-m">Новый дизайн помогает менеджеру быстро находить ключевые показатели и фиксировать взаимодействия, напрямую влияя на бизнес-метрики через сокращение среднего времени проработки клиента</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <a class="home-link" href="index.html" onclick="sessionStorage.removeItem('restoreScroll')">
+      <span class="icon-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="text-l">На главную</span>
+    </a>
+
+  </div>
+</main>
+
+<script>
+// Отключаем автоматическое восстановление скролла браузером —
+// мы управляем этим сами (кнопка "назад" возвращает в то же место витрины).
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
+// ===== Витрина: запоминаем позицию скролла =====
+const isIndexPage = document.body.dataset.page === 'index';
+
+if (isIndexPage) {
+  let saveTimer = null;
+  window.addEventListener('scroll', () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      sessionStorage.setItem('indexScrollY', String(window.scrollY));
+    }, 80);
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const shouldRestore = sessionStorage.getItem('restoreScroll') === '1';
+    if (shouldRestore) {
+      const y = parseInt(sessionStorage.getItem('indexScrollY') || '0', 10);
+      // ждём отрисовки макета перед скроллом
+      requestAnimationFrame(() => {
+        window.scrollTo(0, y);
+      });
+      sessionStorage.removeItem('restoreScroll');
+    } else {
+      window.scrollTo(0, 0);
+    }
+  });
+}
+
+// ===== Плейсхолдеры для картинок, которые ещё не экспортированы =====
+document.addEventListener(
+  'error',
+  (event) => {
+    const target = event.target;
+    if (target && target.tagName === 'IMG' && target.closest('.img-box')) {
+      target.closest('.img-box').classList.add('is-broken');
+    }
+  },
+  true
+);
+
+</script>
+</body>
+</html>

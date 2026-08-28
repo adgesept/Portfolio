@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Организация совместных поездок в Т-банке — Ваге Цатурян</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Дизайн-токены (взяты из Figma) ===== */
+:root {
+  --color-black: #232323;
+  --color-gray-700: #404446;
+  --color-gray-200: #E1E1E1;
+  --color-gray-100: #F2F4F5;
+  --color-white: #FFFFFF;
+
+  --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --radius-l: 24px;
+  --radius-m: 16px;
+  --radius-pill: 40px;
+
+  --content-width: 1000px;
+  --text-width: 800px;
+}
+
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: var(--font-main);
+  color: var(--color-gray-700);
+  background: var(--color-white);
+  -webkit-font-smoothing: antialiased;
+}
+
+img { display: block; max-width: 100%; }
+
+a { text-decoration: none; color: inherit; }
+
+ul { margin: 0; padding: 0; }
+li { margin-bottom: 8px; }
+li:last-child { margin-bottom: 0; }
+
+p { margin: 0; }
+
+/* ===== Типографика ===== */
+.h1 { font-size: 40px; line-height: 48px; font-weight: 600; color: var(--color-black); margin: 0; }
+.h2 { font-size: 32px; line-height: 40px; font-weight: 600; color: var(--color-black); margin: 0; }
+.h3 { font-size: 24px; line-height: 32px; font-weight: 600; color: var(--color-black); margin: 0; }
+.text-l { font-size: 18px; line-height: 26px; font-weight: 400; }
+.text-l-medium { font-size: 18px; line-height: 26px; font-weight: 500; color: var(--color-black); }
+.text-m { font-size: 16px; line-height: 24px; font-weight: 400; }
+
+/* ===== Иконка стрелки (инлайн, без картинок) ===== */
+.icon-arrow {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+.icon-arrow svg { display: block; width: 100%; height: 100%; }
+
+/* ===== Плейсхолдер для ещё не загруженных картинок ===== */
+.img-box {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-m);
+  overflow: hidden;
+  background: var(--color-gray-100);
+}
+.img-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.img-placeholder {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px;
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  color: #9AA0A3;
+  font-size: 14px;
+  line-height: 20px;
+  background:
+    repeating-linear-gradient(45deg, #EDEFF0, #EDEFF0 10px, #F5F6F7 10px, #F5F6F7 20px);
+}
+.img-box.is-broken img { display: none; }
+.img-box.is-broken .img-placeholder { display: flex; }
+
+/* ===== Header controls: back button ===== */
+.back-btn {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  background: var(--color-white);
+  border-radius: var(--radius-pill);
+  box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+  color: var(--color-black);
+  transition: transform 0.2s ease;
+}
+.back-btn:hover { transform: scale(1.08); }
+.back-btn:active { transform: scale(0.97); }
+
+/* ===== Home link ===== */
+.home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-gray-700);
+  transition: color 0.2s ease;
+}
+.home-link .text-l { font-size: 18px; line-height: 26px; }
+.home-link:hover { color: var(--color-black); }
+
+/* ===== Contact chips ===== */
+.contacts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
+}
+.contact-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  background: var(--color-gray-100);
+  color: var(--color-black);
+  font-size: 18px;
+  line-height: 26px;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+.contact-chip:hover { background: var(--color-gray-200); }
+
+/* ===== Cover zoom-on-hover (использовано и на витрине, и в "других проектах") ===== */
+.case-cover {
+  position: relative;
+  border-radius: var(--radius-l);
+  overflow: hidden;
+  display: block;
+  background: var(--color-gray-100);
+}
+.case-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.case-cover:hover img { transform: scale(1.05); }
+
+/* ===================================================== */
+/* ===================  ВИТРИНА  ======================== */
+/* ===================================================== */
+
+.portfolio-page {
+  padding: 96px 24px 140px;
+  display: flex;
+  justify-content: center;
+}
+.portfolio-content {
+  width: 100%;
+  max-width: var(--text-width);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 128px;
+}
+
+.hero-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 52px;
+  width: 100%;
+}
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  width: 100%;
+}
+.photo-container {
+  width: 264px;
+  height: 264px;
+  position: relative;
+}
+.photo-surface {
+  position: absolute;
+  left: 25px;
+  top: 16px;
+  width: 200px;
+  height: 209px;
+  background: var(--color-gray-100);
+  border-radius: 32px;
+  transform: rotate(-4deg);
+}
+.photo-frame {
+  position: absolute;
+  left: 43px;
+  top: 30px;
+  width: 200px;
+  height: 209px;
+  border-radius: 32px;
+  transform: rotate(2deg);
+  overflow: hidden;
+  box-shadow: 0px 4px 20px rgba(0,0,0,0.25);
+  background: var(--color-gray-100);
+  /* фикс бага Safari: overflow:hidden + border-radius + transform иногда
+     обрезают скруглённые уголки неточно, особенно на маленьких размерах.
+     Маска вместо overflow-clip решает проблему во всех браузерах. */
+  -webkit-mask-image: -webkit-radial-gradient(circle, #fff 100%, #000 100%);
+  mask-image: radial-gradient(circle, #fff 100%, #000 100%);
+}
+.photo-frame img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+
+.intro { display: flex; flex-direction: column; gap: 24px; text-align: center; width: 100%; }
+.intro .h1 { }
+.intro a { text-decoration: underline; }
+
+.cases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 80px;
+  width: 100%;
+}
+.case-item { display: flex; flex-direction: column; gap: 24px; width: 100%; }
+.case-item .case-cover { aspect-ratio: 800 / 569; }
+.case-item .case-desc { display: flex; flex-direction: column; gap: 8px; }
+.case-item .case-desc .title { color: var(--color-black); font-size: 24px; line-height: 32px; font-weight: 600; }
+
+.about-me { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+.about-me .skills { display: flex; flex-direction: column; gap: 16px; }
+.about-me ul { list-style: disc; padding-left: 27px; }
+
+/* ===================================================== */
+/* ===================  СТРАНИЦА КЕЙСА  ================= */
+/* ===================================================== */
+
+.case-page {
+  padding: 96px 24px 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 64px;
+}
+.case-content {
+  width: 100%;
+  max-width: var(--content-width);
+  display: flex;
+  flex-direction: column;
+  gap: 96px;
+}
+
+.case-hero { display: flex; flex-direction: column; gap: 64px; width: 100%; }
+.case-hero .case-cover { width: 100%; }
+
+.case-section { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+.case-section .h2 { max-width: var(--text-width); }
+.section-groups { display: flex; flex-direction: column; gap: 64px; width: 100%; }
+.section-group { display: flex; flex-direction: column; gap: 32px; width: 100%; }
+.section-group-text { display: flex; flex-direction: column; gap: 16px; max-width: var(--text-width); }
+.section-group p.text-l,
+.case-section > p.text-l,
+.section-group-text .text-l,
+.section-group ul.text-l { color: var(--color-gray-700); max-width: var(--text-width); }
+
+.case-image { width: 100%; }
+.case-image.is-full { }
+
+/* Task / list-heavy sections that use a narrower column */
+.task-groups { display: flex; flex-direction: column; gap: 32px; }
+.task-group { display: flex; flex-direction: column; gap: 16px; max-width: var(--text-width); width: 100%; }
+
+/* Other works block */
+.other-works { display: flex; flex-direction: column; align-items: center; gap: 32px; width: 100%; }
+.other-works-grid { display: flex; gap: 40px; width: 100%; }
+.other-work-card { display: flex; flex-direction: column; gap: 24px; flex: 1; }
+.other-work-card .case-cover { aspect-ratio: 480 / 341; }
+.other-work-card .desc { display: flex; flex-direction: column; gap: 8px; }
+
+.case-page .home-link { margin-top: 0; }
+
+hr.spacer { border: none; }
+
+/* ===================================================== */
+/* =======================  АДАПТИВ  ==================== */
+/* ===================================================== */
+
+/* ---------- ПЛАНШЕТ: 600–1023px (ориентир — фрейм 744px) ---------- */
+@media (min-width: 600px) and (max-width: 1023px) {
+
+  .case-page, .portfolio-page { padding-left: 40px; padding-right: 40px; padding-top: 84px; padding-bottom: 112px; }
+
+  .h1 { font-size: 34px; line-height: 42px; }
+  .h2 { font-size: 27px; line-height: 34px; }
+  .h3 { font-size: 21px; line-height: 28px; }
+  .text-l, .section-group p.text-l, .case-section > p.text-l, .section-group-text .text-l, .section-group ul.text-l { font-size: 16px; line-height: 24px; }
+  .text-l-medium { font-size: 16px; line-height: 24px; }
+  .text-m { font-size: 14px; line-height: 22px; }
+
+  .portfolio-content { gap: 100px; }
+  .hero-block { gap: 40px; }
+  .hero-content { gap: 28px; }
+  .cases-list { gap: 64px; }
+  .case-item { gap: 20px; }
+  .about-me { gap: 28px; }
+  .about-me .skills { gap: 14px; }
+
+  .photo-container { width: 224px; height: 224px; }
+  .photo-surface { left: 21px; top: 14px; width: 170px; height: 178px; border-radius: 27px; }
+  .photo-frame { left: 37px; top: 26px; width: 170px; height: 178px; border-radius: 27px; }
+
+  .contacts { gap: 14px; }
+  .contact-chip { padding: 10px 20px; font-size: 16px; line-height: 24px; }
+
+  .case-content { gap: 72px; }
+  .case-hero { gap: 48px; }
+  .case-section { gap: 28px; }
+  .section-groups { gap: 48px; }
+  .section-group { gap: 28px; }
+  .section-group-text { gap: 14px; }
+  .task-groups { gap: 28px; }
+  .task-group { gap: 14px; }
+  .other-works { gap: 28px; }
+  .other-works-grid { gap: 28px; }
+  .other-work-card { gap: 20px; }
+  .other-work-card .desc { gap: 6px; }
+
+  .back-btn { width: 52px; height: 52px; top: 20px; left: 20px; }
+  .home-link { gap: 4px; }
+}
+
+/* ---------- МОБИЛКА: ≤599px (ориентир — фрейм 390px) ---------- */
+@media (max-width: 599px) {
+
+  .case-page, .portfolio-page { padding-left: 20px; padding-right: 20px; padding-top: 76px; padding-bottom: 88px; }
+
+  .h1 { font-size: 26px; line-height: 32px; }
+  .h2 { font-size: 21px; line-height: 27px; }
+  .h3 { font-size: 17px; line-height: 23px; }
+  .text-l, .section-group p.text-l, .case-section > p.text-l, .section-group-text .text-l, .section-group ul.text-l { font-size: 14px; line-height: 20px; }
+  .text-l-medium { font-size: 15px; line-height: 21px; }
+  .text-m { font-size: 13px; line-height: 18px; }
+
+  .portfolio-content { gap: 64px; }
+  .hero-block { gap: 24px; }
+  .hero-content { gap: 18px; }
+  .intro { gap: 14px; }
+  .cases-list { gap: 40px; }
+  .case-item { gap: 12px; }
+  .case-item .case-desc { gap: 6px; }
+  .about-me { gap: 18px; }
+  .about-me .skills { gap: 10px; }
+  ul li { margin-bottom: 6px; }
+
+  .photo-container { width: 160px; height: 160px; }
+  .photo-surface { left: 15px; top: 10px; width: 122px; height: 127px; border-radius: 20px; }
+  .photo-frame { left: 26px; top: 18px; width: 122px; height: 127px; border-radius: 20px; }
+
+  .contacts { gap: 10px; row-gap: 10px; }
+  .contact-chip { padding: 8px 16px; font-size: 14px; line-height: 20px; }
+
+  .case-content { gap: 48px; }
+  .case-hero { gap: 32px; }
+  .case-section { gap: 20px; }
+  .section-groups { gap: 32px; }
+  .section-group { gap: 20px; }
+  .section-group-text { gap: 10px; }
+  .task-groups { gap: 20px; }
+  .task-group { gap: 10px; }
+  .other-works { gap: 20px; }
+  .other-works-grid { flex-direction: column; gap: 32px; }
+  .other-work-card { gap: 14px; }
+  .other-work-card .desc { gap: 4px; }
+
+  .back-btn { width: 48px; height: 48px; top: 20px; left: 20px; }
+  .icon-arrow { width: 20px; height: 20px; }
+  .home-link { gap: 4px; }
+  .home-link .text-l { font-size: 14px; line-height: 20px; }
+}
+
+</style>
+</head>
+<body data-page="case">
+
+<a class="back-btn" href="index.html" onclick="sessionStorage.setItem('restoreScroll','1')" aria-label="Назад на витрину">
+  <span class="icon-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+</a>
+
+<main class="case-page">
+  <div class="case-content">
+
+    <!-- HERO -->
+    <section class="case-hero">
+      <p class="h1">Организация совместных поездок в Т-банке</p>
+      <div class="case-cover img-box case-image" style="aspect-ratio:1000/711;">
+        <img src="images/tbank/hero.png" alt="Обложка кейса Т-банк" loading="lazy">
+        <div class="img-placeholder">Фрейм «Обложка» (hero) →<br>images/tbank/hero.png</div>
+      </div>
+    </section>
+
+    <!-- CONTEXT -->
+    <section class="case-section">
+      <p class="h2">О проекте</p>
+      <div class="text-l" style="max-width:800px;">
+        <p>В мобильном приложении Т-Банка есть раздел «Путешествия», который объединяет сервисы для планирования поездок: покупку билетов, бронирование отелей, туров, экскурсий и оформление сопутствующих услуг (например, страховки и справки для визы).</p>
+        <br>
+        <p>В рамках этого проекта я спроектировал решение, которое расширяет существующий раздел и позволяет организовывать совместные поездки и управлять общими расходами внутри одного продукта.</p>
+      </div>
+    </section>
+
+    <!-- TASK -->
+    <section class="case-section">
+      <p class="h2">Проблема и понимание задачи</p>
+      <div class="task-groups">
+        <div class="task-group">
+          <p class="h3">Проблема</p>
+          <p class="text-l">При организации совместных поездок, пользователи сталкиваются с трудностями в координации и учёте общих расходов, так как вынуждены использовать разные инструменты для общения, оплаты и планирования. Это приводит к путанице в платежах, неопределённости в том, кто и сколько должен, и увеличивает количество ручных действий и коммуникации.</p>
+        </div>
+        <div class="task-group">
+          <p class="h3">Задача</p>
+          <p class="text-l">Спроектировать внутри приложения Т-Банка сценарий совместной поездки: от её организации и сбора денег до фиксации расходов и погашения долгов.</p>
+        </div>
+        <div class="task-group">
+          <p class="h3">Целевая аудитория:</p>
+          <p class="text-l">Пользователи, которые путешествуют группой и делят общие расходы.</p>
+        </div>
+        <div class="task-group">
+          <p class="h3">Ценность для пользователя</p>
+          <p class="text-l">Избавить пользователя от лишних действий и переключений между сервисами при организации поездки и учёте общих расходов.</p>
+        </div>
+        <div class="task-group">
+          <p class="h3">Ценность для бизнеса</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Увеличение CR в экосистемные сервисы т-банка через совместные поездки</li>
+            <li>Повышение Retention за счёт регулярного отслеживания групповых расходов в поездках</li>
+            <li>Привлечение новых пользователей за счёт конкурентного преимущества в виде встроенного супераппа</li>
+          </ul>
+        </div>
+        <div class="task-group">
+          <p class="h3">Критерии успеха</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Количество созданных групповых поездок</li>
+            <li>Доля пользователей, успешно завершивших сбор денег для поездки</li>
+            <li>Доля закрытых долгов внутри поездки</li>
+            <li>Объём переводов и платежей внутри поездки</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- RESEARCH -->
+    <section class="case-section">
+      <p class="h2">Исследование</p>
+      <div class="section-groups">
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Анализ открытых источников</p>
+            <p class="text-l">Я изучил публикации, статьи, форумы и пользовательские кейсы, чтобы понять, как люди организуют совместные поездки на практике. Всю информацию я собрал в упрощённую CJM, которая отражает ключевые этапы пользовательского пути (от идеи поездки до финальных расчётов).</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/tbank/cjm.png" alt="CJM" loading="lazy">
+            <div class="img-placeholder">Фрейм «CJM» →<br>images/tbank/cjm.png</div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/595;">
+            <img src="images/tbank/pain-points.png" alt="Ключевые боли" loading="lazy">
+            <div class="img-placeholder">Фрейм «ключевые боли» →<br>images/tbank/pain-points.png</div>
+          </div>
+          <div class="section-group-text">
+            <p class="h3">Инсайты</p>
+            <ul class="text-l" style="list-style:disc;padding-left:27px;">
+              <li>Пользователям важно в любой момент видеть кто кому и сколько должен</li>
+              <li>Люди не хотят считать вручную, всё должно считаться автоматически. Продукт должен снять нагрузку с организатора</li>
+              <li>Люди избегают разговоров о деньгах напрямую, поэтому продукт должен снижать неловкость при работе с долгами и сам напоминать о них</li>
+              <li>Многие люди в совместных поездках ведут учёт общих расходов с помощью приложения Splitwise (чаще всего) и его аналогов</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Бенчмаркинг</p>
+            <p class="text-l">Цель бенчмаркинга: сравнить, как существующие продукты решают ключевые задачи совместной поездки, и выявить паттерны, которые можно применить в решении.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/825;">
+            <img src="images/tbank/benchmark.png" alt="Бенчмаркинг" loading="lazy">
+            <div class="img-placeholder">Фрейм «бенчмаркинг» →<br>images/tbank/benchmark.png</div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/681;">
+            <img src="images/tbank/best-practices.png" alt="Лучшие практики" loading="lazy">
+            <div class="img-placeholder">Фрейм «Лучшие практики» →<br>images/tbank/best-practices.png</div>
+          </div>
+          <div class="section-group-text">
+            <p class="h3">Выводы</p>
+            <ul class="text-l" style="list-style:disc;padding-left:27px;">
+              <li>Основной фокус существующих решений — учёт расходов и расчёт долгов, при этом все переводы происходят вне приложения</li>
+              <li>Отслеживание долгов в большинстве продуктов реализовано недостаточно очевидно, поэтому пользователю приходится совершать лишние действия, чтобы понять статус своего баланса</li>
+              <li>В продуктах отсутствует полноценная координация внутри группы — коммуникация остаётся в сторонних сервисах. Это отличное преимущество для Т-банка, так как в приложении уже есть чат</li>
+              <li>Ни один из продуктов не решает задачу сбора средств</li>
+            </ul>
+          </div>
+          <div class="section-group-text">
+            <p class="h3">Инсайты</p>
+            <ul class="text-l" style="list-style:disc;padding-left:27px;">
+              <li>Долги должны быть максимально заметны и доступны с первого экрана, чтобы пользователь сразу понимал кто кому и сколько должен</li>
+              <li>Добавление расходов должно быть простым и гибким, а расчёт долей и долгов — автоматическим</li>
+              <li>Расходы, долги и коммуникация должны быть разделены, а ключевые статусы — легко считываться</li>
+              <li>Существующие решения хорошо считают долги, но не умеют собирать деньги, помогать планировать и координировать группу внутри одного продукта. Т-банк может закрыть все три гэпа за счёт существующей экосистемы внутри приложения</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- HYPOTHESES -->
+    <section class="case-section">
+      <p class="h2">Гипотезы</p>
+      <div class="section-group">
+        <div class="text-l" style="max-width:800px;">
+          <p>Чтобы сфокусироваться на MVP и спроектировать только необходимое для запуска и быстрой проверки ценности решения, гипотезы были разделены по приоритету:</p>
+          <br>
+          <p>🟢 — функции, без которых продукт не решает ключевую проблему<br>🟠 — функции, которые усиливают пользовательский опыт или требуют дополнительной проверки, но не критичны на старте.</p>
+        </div>
+        <div class="img-box case-image" style="aspect-ratio:1000/832;">
+          <img src="images/tbank/hypotheses.png" alt="Гипотезы" loading="lazy">
+          <div class="img-placeholder">Фрейм «гипотезы» →<br>images/tbank/hypotheses.png</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STRUCTURE -->
+    <section class="case-section">
+      <p class="h2">Структура будущего раздела</p>
+      <div class="section-group">
+        <p class="text-l" style="max-width:800px;">Далее я спроектировал структуру раздела, в которой отражены основные сущности и связи между ними, а затем на её основе составил user flow ключевых сценариев.</p>
+        <div class="img-box case-image" style="aspect-ratio:1000/665;">
+          <img src="images/tbank/structure-flow.png" alt="Структура и флоу" loading="lazy">
+          <div class="img-placeholder">Фрейм «структура и флоу 1» →<br>images/tbank/structure-flow.png</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- UX TESTING -->
+    <section class="case-section">
+      <p class="h2">UX-тесты на прототипах Claude</p>
+      <div class="section-groups">
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Цели тестирования</p>
+            <div class="text-l">
+              <ul style="list-style:disc;padding-left:27px;">
+                <li>Проверить понятность и логику сценариев</li>
+                <li>Выявить барьеры при использовании</li>
+                <li>Собрать инсайты и идеи для улучшения</li>
+              </ul>
+              <br>
+              <p>Собрал кликабельный прототип с помощью Claude. Загрузил user flow, структуру раздела, референсы интерфейса Т-Банка и описал основную логику. За 10–15 минут получил прототип, которого было достаточно для UX-тестирования (даже несмотря на сыроватый UI). Далее экспортировал прототипы в HTML и отправил респондентам, чтобы они смогли открыть их в браузере.</p>
+            </div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/1425;">
+            <img src="images/tbank/tests.png" alt="Тесты" loading="lazy">
+            <div class="img-placeholder">Фрейм «тесты» →<br>images/tbank/tests.png</div>
+          </div>
+        </div>
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Инсайт и доработка</p>
+            <p class="text-l">В ходе тестирования выяснилось, что 2 из 3 респондентов не сразу поняли, что плашка с балансом является кликабельной и ведёт к погашению долга. Чтобы сделать действие более очевидным, я доработал компонент: добавил справа шеврон, который визуально подсказывает возможность перехода. Сначала рассматривал кнопку «Погасить долг», но она перегружала плашку, а шеврон оказался более компактным вариантом.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/761;">
+            <img src="images/tbank/test-fix.png" alt="Доработка после тестов" loading="lazy">
+            <div class="img-placeholder">Фрейм «Доработка после тестов» →<br>images/tbank/test-fix.png</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINAL DESIGN -->
+    <section class="case-section">
+      <p class="h2">Финальный дизайн</p>
+      <div class="section-groups">
+
+        <div class="section-group">
+          <p class="h3">Точки входа в сценарий</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/431;">
+            <img src="images/tbank/entry-points-1.png" alt="Точки входа 1" loading="lazy">
+            <div class="img-placeholder">Фрейм «точки входа 1» →<br>images/tbank/entry-points-1.png</div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/769;">
+            <img src="images/tbank/entry-points-2.png" alt="Точки входа 1.1" loading="lazy">
+            <div class="img-placeholder">Фрейм «точки входа 1.1» →<br>images/tbank/entry-points-2.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Создание совместной поездки</p>
+            <p class="text-l">Пользователь может попасть в совместную поездку двумя способами: создать её самостоятельно или присоединиться по приглашению. Такой подход отражает реальное поведение, где любой человек может быть и инициатором, и приглашённым.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/1432;">
+            <img src="images/tbank/create-trip.png" alt="Создание поездки" loading="lazy">
+            <div class="img-placeholder">Фрейм «Создание поездки» →<br>images/tbank/create-trip.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Приглашение участников</p>
+            <p class="text-l">После создания поездки пользователю сразу предлагается пригласить участников, чтобы начать совместное взаимодействие. Также по умолчанию открывается вкладка «Сборы», так как на этапе планирования люди чаще всего начинают с организации бюджета и сбора денег на общие покупки (например на жильё).</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/924;">
+            <img src="images/tbank/invite-1.png" alt="Приглашение участников 1" loading="lazy">
+            <div class="img-placeholder">Фрейм «Приглашение участников 1» →<br>images/tbank/invite-1.png</div>
+          </div>
+          <p class="text-l" style="max-width:1000px;">Участников можно пригласить, выбрав их из списка контактов или отправив ссылку-приглашение / показав QR-код.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/1432;">
+            <img src="images/tbank/invite-2.png" alt="Приглашение участников 1.1" loading="lazy">
+            <div class="img-placeholder">Фрейм «Приглашение участников 1.1» →<br>images/tbank/invite-2.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Фиксация трат</p>
+            <p class="text-l">Во вкладке «Траты» пользователи могут отслеживать все общие расходы и добавлять новые. Добавление реализовано через FAB-кнопку с выбором удобного способа фиксации траты.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/957;">
+            <img src="images/tbank/expenses-1.png" alt="Фиксация трат 1" loading="lazy">
+            <div class="img-placeholder">Фрейм «Фиксация трат 1» →<br>images/tbank/expenses-1.png</div>
+          </div>
+          <p class="text-l" style="max-width:800px;">Если один из участников оплатил покупку на всех, он может добавить трату прямо из истории операций, чтобы не заполнять данные вручную. Для этого я использовал уже существующую в приложении Т-банка функцию разделения трат, адаптируя её под сценарий совместной поездки.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/tbank/expenses-2.png" alt="Фиксация трат 1.1" loading="lazy">
+            <div class="img-placeholder">Фрейм «Фиксация трат 1.1» →<br>images/tbank/expenses-2.png</div>
+          </div>
+          <p class="text-l" style="max-width:800px;">Если трата была оплачена наличными или картой другого банка, пользователь может добавить её вручную, заполнив основные детали и указав способ разделения между участниками.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/tbank/expenses-3.png" alt="Фиксация трат 1.2" loading="lazy">
+            <div class="img-placeholder">Фрейм «Фиксация трат 1.2» →<br>images/tbank/expenses-3.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Погашение задолженностей</p>
+            <p class="text-l">Для каждого участника на главный экран поездки будет выводиться сумма всех задолженностей. Погасить долг можно либо в плашке под участниками, либо перейти в карточку конкретной траты и погасить там.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/1432;">
+            <img src="images/tbank/debts-1.png" alt="Погашение задолженностей 1" loading="lazy">
+            <div class="img-placeholder">Фрейм «Погашение задолженностей 1» →<br>images/tbank/debts-1.png</div>
+          </div>
+          <p class="text-l" style="max-width:800px;">Процесс погашения задолженности простой: после нажатия на кнопку «Перевести» все данные (сумма и получатель) уже заполнены. Пользователю остаётся только проверить и подтвердить перевод.</p>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/tbank/debts-2.png" alt="Погашение задолженностей 1.1" loading="lazy">
+            <div class="img-placeholder">Фрейм «Погашение задолженностей 1.1» →<br>images/tbank/debts-2.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Создание сбора и взнос средств</p>
+            <div class="text-l">
+              <p>При создании сбора после выбора категории пользователю предлагается перейти в соответствующий сервис Т-Банка (например, поиск отелей или билетов), чтобы сразу подобрать подходящий вариант и не вводить детали вручную.</p>
+              <br>
+              <p>Таким образом, сервисы экосистемы нативно встроены в сценарий планирования и появляются в нужный момент, не перегружая пользователя.</p>
+            </div>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/tbank/collection-create.png" alt="Создание сбора" loading="lazy">
+            <div class="img-placeholder">Фрейм «Создание сбора» →<br>images/tbank/collection-create.png</div>
+          </div>
+          <div class="text-l" style="max-width:800px;">
+            <p>В карточке сбора участники могут оставлять комментарии и обсуждать детали сбора прямо в контексте и без перехода в мессенджеры. Это объединяет планирование и оплату в одном месте: после обсуждения можно сразу внести деньги на этом же экране.</p>
+            <br>
+            <p>При нажатии на кнопку «Внести» пользователь попадает на экран с уже заполненными данными, остаётся только проверить и подтвердить платёж. При необходимости сумму можно изменить.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/711;">
+            <img src="images/tbank/collection-pay.png" alt="Взнос средств" loading="lazy">
+            <div class="img-placeholder">Фрейм «Взнос средств» →<br>images/tbank/collection-pay.png</div>
+          </div>
+        </div>
+
+        <div class="section-group">
+          <div class="section-group-text">
+            <p class="h3">Отслеживание баланса участников</p>
+            <p class="text-l">Во вкладке «Балансы» пользователи могут отслеживать задолженности всех участников. Это помогает избежать конфликтов и недопониманий, т.к. каждый видит, кто, кому и сколько должен. При нажатии на плашку раскрывается подробная информация по отдельным долгам.</p>
+          </div>
+          <div class="img-box case-image" style="aspect-ratio:1000/786;">
+            <img src="images/tbank/balances.png" alt="Отслеживание баланса участников" loading="lazy">
+            <div class="img-placeholder">Фрейм «Отслеживание баланса участников» →<br>images/tbank/balances.png</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- RESULTS -->
+    <section class="case-section">
+      <p class="h2">Итоги работы</p>
+      <div class="task-groups">
+        <div class="task-group">
+          <p class="h3">✅ Что удалось достичь</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Создание совместной поездки в 2 клика. Можно быть как инициатором, так и приглашённым участником</li>
+            <li>Гибкая фиксация трат: как из истории операций, так и вручную (в случае оплаты наличными или картой другого банка)</li>
+            <li>Интеграция в новый сценарий существующих возможностей Т-Банка: разделение трат, сбор средств, переводы, а также сервисы поиска билетов и отелей</li>
+            <li>Коммуникация и оплата теперь в одном месте: участники могут обсуждать детали прямо в карточке сбора / конкретной траты и сразу вносить деньги, без перехода в мессенджеры</li>
+            <li>Прозрачность в долгах: пользователи всегда видят статус своего баланса в поездке и могут быстро погасить задолженность внутри приложения</li>
+          </ul>
+        </div>
+        <div class="task-group">
+          <p class="h3">📈 Ожидаемый эффект для бизнеса</p>
+          <ul class="text-l" style="list-style:disc;padding-left:27px;">
+            <li>Рост количества созданных совместных поездок</li>
+            <li>Рост объёма платежей внутри приложения за счёт сборов, переводов и погашения долгов</li>
+            <li>Рост Retention за счёт регулярного взаимодействия пользователей внутри поездки</li>
+          </ul>
+        </div>
+        <div class="task-group">
+          <p class="h3">📌 Рефлексия и дальнейшее развитие</p>
+          <div class="text-l">
+            <p>Так как в этом проекте я сфокусировался на ключевых сценариях для MVP, то в дальнейшем решение можно развить в нескольких направлениях:</p>
+            <ul style="list-style:disc;padding-left:27px;margin-top:8px;">
+              <li>Упростить погашение долгов за счёт личного пула средств: пользователь один раз пополняет баланс поездки, после чего долги внутри группы могут закрываться автоматически</li>
+              <li>Усилить точки входа: использовать сториз в разделе «Путешествия» и контекстные подсказки в релевантных сценариях (например, после покупки билетов и бронирования отелей)</li>
+              <li>Усилить коммуникацию: сделать обсуждения более заметными и удобными, а также развить их до формата полноценного чата с возможностью голосований и согласования решений</li>
+              <li>Расширить интеграцию с экосистемными сервисами Т-Банка (например, справки для визы, мобильный интернет за границей и другие сервисы, актуальные в поездке)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- OTHER WORKS -->
+    <section class="other-works">
+      <p class="h2">Другие проекты</p>
+      <div class="other-works-grid">
+        <a class="other-work-card" href="case-crm.html">
+          <div class="case-cover img-box">
+            <img src="images/cover-crm.png" alt="Обложка кейса CRM" loading="lazy">
+            <div class="img-placeholder">Та же обложка, что на витрине →<br>images/cover-crm.png</div>
+          </div>
+          <div class="desc">
+            <p class="text-l-medium">Как я упростил CRM для менеджеров (B2B)</p>
+            <p class="text-m">Новый дизайн помогает менеджеру быстро находить ключевые показатели и фиксировать взаимодействия, напрямую влияя на бизнес-метрики через сокращение среднего времени проработки клиента</p>
+          </div>
+        </a>
+        <a class="other-work-card" href="case-prodoctorov.html">
+          <div class="case-cover img-box">
+            <img src="images/cover-prodoctorov.png" alt="Обложка кейса ПроДокторов" loading="lazy">
+            <div class="img-placeholder">Та же обложка, что на витрине →<br>images/cover-prodoctorov.png</div>
+          </div>
+          <div class="desc">
+            <p class="text-l-medium">Как я сократил сценарий записи к врачу в 2 раза</p>
+            <p class="text-m">Новое решение позволяет выбрать врача и записаться прямо с карты, сократив путь пользователя с 11 до 6 шагов, а среднее время прохождения сценария — с 1:59 до 29 секунд.</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <a class="home-link" href="index.html" onclick="sessionStorage.removeItem('restoreScroll')">
+      <span class="icon-arrow"><svg viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L12 19M5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+      <span class="text-l">На главную</span>
+    </a>
+
+  </div>
+</main>
+
+<script>
+// Отключаем автоматическое восстановление скролла браузером —
+// мы управляем этим сами (кнопка "назад" возвращает в то же место витрины).
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
+// ===== Витрина: запоминаем позицию скролла =====
+const isIndexPage = document.body.dataset.page === 'index';
+
+if (isIndexPage) {
+  let saveTimer = null;
+  window.addEventListener('scroll', () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      sessionStorage.setItem('indexScrollY', String(window.scrollY));
+    }, 80);
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const shouldRestore = sessionStorage.getItem('restoreScroll') === '1';
+    if (shouldRestore) {
+      const y = parseInt(sessionStorage.getItem('indexScrollY') || '0', 10);
+      // ждём отрисовки макета перед скроллом
+      requestAnimationFrame(() => {
+        window.scrollTo(0, y);
+      });
+      sessionStorage.removeItem('restoreScroll');
+    } else {
+      window.scrollTo(0, 0);
+    }
+  });
+}
+
+// ===== Плейсхолдеры для картинок, которые ещё не экспортированы =====
+document.addEventListener(
+  'error',
+  (event) => {
+    const target = event.target;
+    if (target && target.tagName === 'IMG' && target.closest('.img-box')) {
+      target.closest('.img-box').classList.add('is-broken');
+    }
+  },
+  true
+);
+
+</script>
+</body>
+</html>
