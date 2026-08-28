@@ -868,12 +868,27 @@ if (isIndexPage) {
   });
 }
 
-// ===== Плейсхолдеры для картинок, которые ещё не экспортированы =====
+// ===== Плейсхолдеры для картинок + повторные попытки на медленном интернете =====
+// Если картинка не загрузилась (например, мобильный интернет оборвал запрос),
+// пробуем ещё раз с растущей паузой перед тем, как показать плейсхолдер.
+const MAX_IMG_RETRIES = 3;
+const IMG_RETRY_DELAY = 1000; // мс
+
 document.addEventListener(
   'error',
   (event) => {
     const target = event.target;
-    if (target && target.tagName === 'IMG' && target.closest('.img-box')) {
+    if (!target || target.tagName !== 'IMG' || !target.closest('.img-box')) return;
+
+    const attempts = parseInt(target.dataset.retryCount || '0', 10);
+    if (attempts < MAX_IMG_RETRIES) {
+      target.dataset.retryCount = String(attempts + 1);
+      const baseSrc = target.dataset.baseSrc || target.getAttribute('src').split('?')[0];
+      target.dataset.baseSrc = baseSrc;
+      setTimeout(() => {
+        target.src = baseSrc + '?retry=' + (attempts + 1) + '&t=' + Date.now();
+      }, IMG_RETRY_DELAY * (attempts + 1));
+    } else {
       target.closest('.img-box').classList.add('is-broken');
     }
   },
