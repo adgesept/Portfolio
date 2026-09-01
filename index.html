@@ -222,16 +222,23 @@ p { margin: 0; }
   height: 209px;
   border-radius: 32px;
   transform: rotate(2deg);
-  overflow: hidden;
   box-shadow: 0px 4px 20px rgba(0,0,0,0.25);
   background: var(--color-gray-100);
+}
+/* Обрезка картинки под скругление вынесена в отдельный вложенный слой,
+   чтобы box-shadow родителя не задевался маской (иначе тень пропадает). */
+.photo-frame-clip {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  overflow: hidden;
   /* фикс бага Safari: overflow:hidden + border-radius + transform иногда
      обрезают скруглённые уголки неточно, особенно на маленьких размерах.
      Маска вместо overflow-clip решает проблему во всех браузерах. */
   -webkit-mask-image: -webkit-radial-gradient(circle, #fff 100%, #000 100%);
   mask-image: radial-gradient(circle, #fff 100%, #000 100%);
 }
-.photo-frame img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; }
+.photo-frame img { width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
 
 .intro { display: flex; flex-direction: column; gap: 24px; text-align: center; width: 100%; }
 .intro .h1 { }
@@ -327,8 +334,8 @@ hr.spacer { border: none; }
   .about-me .skills { gap: 14px; }
 
   .photo-container { width: 224px; height: 224px; }
-  .photo-surface { left: 21px; top: 14px; width: 170px; height: 178px; border-radius: 27px; }
-  .photo-frame { left: 37px; top: 26px; width: 170px; height: 178px; border-radius: 27px; }
+  .photo-surface { left: 21px; top: 14px; width: 170px; height: 178px; border-radius: 22px; }
+  .photo-frame { left: 37px; top: 26px; width: 170px; height: 178px; border-radius: 22px; }
 
   .contacts { gap: 14px; }
   .contact-chip { padding: 10px 20px; font-size: 16px; line-height: 24px; }
@@ -374,8 +381,8 @@ hr.spacer { border: none; }
   ul li { margin-bottom: 6px; }
 
   .photo-container { width: 160px; height: 160px; }
-  .photo-surface { left: 15px; top: 10px; width: 122px; height: 127px; border-radius: 20px; }
-  .photo-frame { left: 26px; top: 18px; width: 122px; height: 127px; border-radius: 20px; }
+  .photo-surface { left: 15px; top: 10px; width: 122px; height: 127px; border-radius: 16px; }
+  .photo-frame { left: 26px; top: 18px; width: 122px; height: 127px; border-radius: 16px; }
 
   .contacts { gap: 10px; row-gap: 10px; }
   .contact-chip { padding: 8px 16px; font-size: 14px; line-height: 20px; }
@@ -424,9 +431,11 @@ hr.spacer { border: none; }
         <div class="photo-container">
           <div class="photo-surface"></div>
           <div class="photo-frame">
-            <div class="img-box" style="width:100%;height:100%;border-radius:32px;">
-              <img src="images/photo.jpg" alt="Фото Ваге Цатуряна" loading="lazy">
-              <div class="img-placeholder">Секция «Моё фото» в Figma →<br>images/photo.jpg</div>
+            <div class="photo-frame-clip">
+              <div class="img-box" style="width:100%;height:100%;border-radius:inherit;">
+                <img src="images/photo.jpg" alt="Фото Ваге Цатуряна" loading="lazy">
+                <div class="img-placeholder">Секция «Моё фото» в Figma →<br>images/photo.jpg</div>
+              </div>
             </div>
           </div>
         </div>
